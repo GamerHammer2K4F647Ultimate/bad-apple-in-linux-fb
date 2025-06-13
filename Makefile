@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -pedantic -std=c11 -ggdb
-LDFLAGS = -static
+LDFLAGS = -static -lasound -lpthread -lm
 
 SRC = ./badapple_fb.c
 OBJ = $(SRC:.c=.o)
@@ -12,7 +12,7 @@ all: badapple_fb frames
 .PHONY: clean help frames
 
 badapple_fb: $(OBJ)
-	$(CC) $(LDFLAGS) $^ -o $@
+	$(CC) $^ -o $@ $(LDFLAGS)
 
 frames: $(VIDEO)
 	mkdir -pv $(FRAMES_FOLDER)
