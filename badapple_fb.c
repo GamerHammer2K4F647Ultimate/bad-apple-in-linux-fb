@@ -8,6 +8,8 @@
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 
+// TODO: audio playing
+
 unsigned char *load_ppm(const char *filename, int *width, int *height) 
 {
     FILE *f = fopen(filename, "rb");

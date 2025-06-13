@@ -9,10 +9,11 @@ FRAMES_FOLDER = ./frames
 
 all: badapple_fb frames
 
-.PHONY: clean help frames
+.PHONY: clean help frames install
 
 badapple_fb: $(OBJ)
 	$(CC) $^ -o $@ $(LDFLAGS)
+	@echo "Ensure $@ is statically linked with ldd"
 
 frames: $(VIDEO)
 	mkdir -pv $(FRAMES_FOLDER)
@@ -24,11 +25,25 @@ help:
 	@echo "	all		build all"
 	@echo "	clean		cleans the build"
 	@echo "	frames		generate frames"
+	@echo "	install		install as an initramfs hook"
 	@echo "	help		this"
 	@echo "variables:"
 	@echo "	VIDEO		video file (default = ./badapple.mp4)"
 	@echo "	FRAMES_FOLDER	output frames folder (default = ./frames)"
-
+	
+install: badapple_fb frames
+	cp -r ./frames /usr/share
+	cp ./badapple_fb /usr/bin
+	chmod +x ./badapple_hook
+	chmod +x ./badapple_install
+	cp ./badapple_hook /usr/lib/initcpio/hooks/
+	cp ./badapple_install /usr/lib/initcpio/install
+	mv /usr/lib/initcpio/hooks/badapple_hook /usr/lib/initcpio/hooks/badapple
+	mv /usr/lib/initcpio/install/badapple_install /usr/lib/initcpio/install/badapple
+	@echo "From now on, installation is in your hands."
+	@echo "Edit /etc/mkinitcpio.conf to use the badapple hook (put it at least before fsck)"
+	@echi "And edit your boot loader's config to have the 'badapple' kernel param"
+	
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 

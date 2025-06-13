@@ -1,0 +1,6 @@
+#!/bin/bash
+run_hook() {
+	if grep -q "badapple" /proc/cmdline; then
+		/bin/badapple_fb /usr/share/frames &
+	fi
+}
