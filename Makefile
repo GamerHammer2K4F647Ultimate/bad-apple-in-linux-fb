@@ -32,7 +32,7 @@ help:
 	@echo "	FRAMES_FOLDER	output frames folder (default = ./frames)"
 	
 install: badapple_fb frames
-	cp -r ./frames /usr/share
+	cp -r ./$(FRAMES_FOLDER) /usr/share
 	cp ./badapple_fb /usr/bin
 	chmod +x ./badapple_hook
 	chmod +x ./badapple_install
@@ -42,7 +42,8 @@ install: badapple_fb frames
 	mv /usr/lib/initcpio/install/badapple_install /usr/lib/initcpio/install/badapple
 	@echo "From now on, installation is in your hands."
 	@echo "Edit /etc/mkinitcpio.conf to use the badapple hook (put it at least before fsck)"
-	@echi "And edit your boot loader's config to have the 'badapple' kernel param"
+	@echo "And edit your boot loader's config to have the 'badapple' kernel param"
+	@echo "ALSO: if you changed FRAMES_FOLDER to not be 'frames', you'll have to change it in the initramfs hook"
 	
 %.o: %.c
 	$(CC) $(CFLAGS) -c -o $@ $<
