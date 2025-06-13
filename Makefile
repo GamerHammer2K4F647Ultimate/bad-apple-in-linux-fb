@@ -17,6 +17,7 @@ badapple_fb: $(OBJ)
 frames: $(VIDEO)
 	mkdir -pv $(FRAMES_FOLDER)
 	ffmpeg -i $^ ./$(FRAMES_FOLDER)/%04d.ppm
+	@du -h $(FRAMES_FOLDER)
 
 help:
 	@echo "badapple in framebuffer makefile help"
@@ -32,4 +33,4 @@ help:
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	rm -rf badapple_fb *.o
+	rm -rf ./badapple_fb $(OBJ) $(FRAMES_FOLDER)
