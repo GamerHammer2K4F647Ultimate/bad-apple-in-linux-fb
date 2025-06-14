@@ -1,6 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -pedantic -std=c11 -ggdb -Wno-implicit-function-declaration
-LDFLAGS = -static -lpthread -lm
+ALSA_LIB_STATIC_PATH = /opt/alsa-static/lib
+LDFLAGS = -static -lpthread -L$(ALSA_LIB_STATIC_PATH) -lasound -lm
 
 SRC = ./badapple_fb.c
 OBJ = $(SRC:.c=.o)
@@ -13,7 +14,6 @@ all: badapple_fb frames audio
 
 badapple_fb: $(OBJ)
 	$(CC) $^ -o $@ $(LDFLAGS)
-	@echo "Ensure $@ is statically linked with ldd"
 
 frames: $(VIDEO)
 	mkdir -pv $(FRAMES_FOLDER)
@@ -21,18 +21,19 @@ frames: $(VIDEO)
 	@du -h $(FRAMES_FOLDER)
 
 audio: $(VIDEO)
-	ffmpeg -i $^ $(FRAMES_FOLDER)/badapple.wav
+	ffmpeg -i $^ -ar 41000 -ac 2 $(FRAMES_FOLDER)/badapple.wav
 
 help:
 	@echo "badapple in framebuffer makefile help"
 	@echo "	all		build all"
-	@echo "	clean		cleans the build"
-	@echo "	frames		generate frames"
-	@echo "	install		install as an initramfs hook"
-	@echo "	help		this"
+	@echo "	clean					cleans the build"
+	@echo "	frames					generate frames"
+	@echo "	install					install as an initramfs hook"
+	@echo "	help					this"
 	@echo "variables:"
-	@echo "	VIDEO		video file (default = ./badapple.mp4)"
-	@echo "	FRAMES_FOLDER	output frames folder (default = ./frames)"
+	@echo "	VIDEO					video file (default = ./badapple.mp4)"
+	@echo "	FRAMES_FOLDER			output frames folder (default = ./frames)"
+	@echo " ALSA_LIB_STATIC_PATH	specify default ALSA static library location (default = /opt/alsa-static/lib)"
 	
 install: badapple_fb frames audio
 	cp -r ./$(FRAMES_FOLDER) /usr/share
