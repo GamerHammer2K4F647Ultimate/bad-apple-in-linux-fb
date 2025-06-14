@@ -89,7 +89,18 @@ int main(int argc, char **argv)
 	signal(SIGSEGV, signal_handler);
 	signal(SIGTERM, signal_handler);
 	signal(SIGABRT, signal_handler);
+	
     if (argc != 3) {
+		if (argc == 2) {
+			if (strcmp(argv[1], "-help") == 0) {
+				fprintf(stderr, "%s: plays bad apple in a linux framebuffer\n", argv[0]);
+				fprintf(stderr, "usage: %s <folder> <audio>\n", argv[0]);
+				fprintf(stderr, "<folder>		folder where the frames are located\n");
+				fprintf(stderr, "<audio>		audio file. can be set to `none` if you don\'t want audio\n");
+				fprintf(stderr, "-help			show this menu\n");
+				return 1;
+			}			
+		}
         fprintf(stderr, "Usage: %s <folder> <audio>\n", argv[0]);
         return 1;
     }
