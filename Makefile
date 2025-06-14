@@ -1,13 +1,13 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -pedantic -std=c11 -ggdb
-LDFLAGS = -static -lasound -lpthread -lm
+LDFLAGS = -static -lpthread -lm
 
 SRC = ./badapple_fb.c
 OBJ = $(SRC:.c=.o)
 VIDEO = ./badapple.mp4
 FRAMES_FOLDER = ./frames
 
-all: badapple_fb frames
+all: badapple_fb frames audio
 
 .PHONY: clean help frames install
 
@@ -17,8 +17,11 @@ badapple_fb: $(OBJ)
 
 frames: $(VIDEO)
 	mkdir -pv $(FRAMES_FOLDER)
-	ffmpeg -i $^ ./$(FRAMES_FOLDER)/%04d.ppm
+	ffmpeg -i $^ $(FRAMES_FOLDER)/%04d.ppm
 	@du -h $(FRAMES_FOLDER)
+
+audio: $(VIDEO)
+	ffmpeg -i $^ $(FRAMES_FOLDER)/badapple.wav
 
 help:
 	@echo "badapple in framebuffer makefile help"
@@ -31,7 +34,7 @@ help:
 	@echo "	VIDEO		video file (default = ./badapple.mp4)"
 	@echo "	FRAMES_FOLDER	output frames folder (default = ./frames)"
 	
-install: badapple_fb frames
+install: badapple_fb frames audio
 	cp -r ./$(FRAMES_FOLDER) /usr/share
 	cp ./badapple_fb /usr/bin
 	chmod +x ./badapple_hook

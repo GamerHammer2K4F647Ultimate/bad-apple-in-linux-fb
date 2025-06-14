@@ -7,8 +7,38 @@
 #include <linux/fb.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
+#include <pthread.h>
+#define MA_NO_RUNTIME_LINKING
+#define MA_NO_ALSA
+#define MA_OSS
+#define MA_NO_JACK
+#define MA_NO_PULSEAUDIO
+#define MA_NO_SDL
+#define MA_NO_PIPEWIRE
+#define MA_NO_AUDIOUNIT
+#define MINIAUDIO_IMPLEMENTATION
+#include "miniaudio.h"
 
-// TODO: audio playing
+void *play_sound(void *args)
+{
+	const char *fn = (const char*)args;
+	ma_result result;
+	ma_engine engine;
+	
+	result = ma_engine_init(NULL, &engine);
+	if (result != MA_SUCCESS) {
+		fprintf(stderr, "failed to init audio engine\n");
+		return NULL;
+	}
+	
+	ma_engine_play_sound(&engine, fn, NULL);
+	//while(ma_engine_is_playing_sound(&engine, fn)) {
+	//	ma_sleep(100);
+	//}
+	
+	ma_engine_uninit(&engine);
+	return NULL;
+}
 
 unsigned char *load_ppm(const char *filename, int *width, int *height) 
 {
@@ -41,8 +71,8 @@ unsigned char *load_ppm(const char *filename, int *width, int *height)
 
 int main(int argc, char **argv) 
 {
-    if (argc != 2) {
-        fprintf(stderr, "Usage: %s <folder>:\n", argv[0]);
+    if (argc != 3) {
+        fprintf(stderr, "Usage: %s <folder> <audio>\n", argv[0]);
         return 1;
     }
 
@@ -68,7 +98,11 @@ int main(int argc, char **argv)
 
     int bytes_per_pixel = vinfo.bits_per_pixel / 8;
     int x_offset = 100, y_offset = 100;
-
+	
+	pthread_t sound_thrd;
+	if(!pthread_create(&sound_thrd, NULL, play_sound, argv[2])) {
+		return 1;
+	}
     for (int idx = 0; idx < 6572; ++idx) { // where 6572 is the amount of frames
 		int img_w, img_h;
 		char fn[1024];
@@ -103,6 +137,10 @@ int main(int argc, char **argv)
 
 	printf("executing /sbin/init after exiting this...");
 	usleep(1000000);
+	
+	pthread_join(sound_thrd, NULL);
+	
+	printf("\033c"); // clear screen after
 
     return 0;
 }

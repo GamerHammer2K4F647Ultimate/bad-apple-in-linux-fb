@@ -8,6 +8,7 @@ No audio yet.
 
 ### Dependecies
  - ffmpeg
+ - good gpu
  
 ```console
 $ make

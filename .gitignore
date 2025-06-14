@@ -1,3 +1,7 @@
 badapple_fb
 *.o
 **/*.ppm
+frames
+**/*.wav
+**/*.mp3
+**/*.pcm
