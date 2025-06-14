@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -pedantic -std=c11 -ggdb
+CFLAGS = -Wall -Wextra -pedantic -std=c11 -ggdb -Wno-implicit-function-declaration
 LDFLAGS = -static -lpthread -lm
 
 SRC = ./badapple_fb.c

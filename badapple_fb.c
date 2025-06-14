@@ -8,6 +8,8 @@
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <pthread.h>
+#include <stdbool.h>
+#include <signal.h>
 #define MA_NO_RUNTIME_LINKING
 #define MA_NO_ALSA
 #define MA_OSS
@@ -18,6 +20,18 @@
 #define MA_NO_AUDIOUNIT
 #define MINIAUDIO_IMPLEMENTATION
 #include "miniaudio.h"
+
+int fb = 0;
+uint8_t *fbp;
+size_t screensize;
+
+void signal_handler(int sig)
+{
+	printf("recived signal %d\n", sig);
+	munmap(fbp, screensize);
+    close(fb);
+	exit(sig);
+}
 
 void *play_sound(void *args)
 {
@@ -71,12 +85,16 @@ unsigned char *load_ppm(const char *filename, int *width, int *height)
 
 int main(int argc, char **argv) 
 {
+	signal(SIGINT, signal_handler);
+	signal(SIGSEGV, signal_handler);
+	signal(SIGTERM, signal_handler);
+	signal(SIGABRT, signal_handler);
     if (argc != 3) {
         fprintf(stderr, "Usage: %s <folder> <audio>\n", argv[0]);
         return 1;
     }
 
-    int fb = open("/dev/fb0", O_RDWR);
+    fb = open("/dev/fb0", O_RDWR);
     if (fb == -1) {
         perror("open fb");
         return 1;
@@ -87,8 +105,8 @@ int main(int argc, char **argv)
     ioctl(fb, FBIOGET_FSCREENINFO, &finfo);
     ioctl(fb, FBIOGET_VSCREENINFO, &vinfo);
 
-    size_t screensize = finfo.line_length * vinfo.yres;
-    uint8_t *fbp = mmap(NULL, screensize, PROT_READ | PROT_WRITE, MAP_SHARED, fb, 0);
+    screensize = finfo.line_length * vinfo.yres;
+    fbp = mmap(NULL, screensize, PROT_READ | PROT_WRITE, MAP_SHARED, fb, 0);
 
     if (fbp == MAP_FAILED) {
         perror("mmap");
@@ -99,9 +117,18 @@ int main(int argc, char **argv)
     int bytes_per_pixel = vinfo.bits_per_pixel / 8;
     int x_offset = 100, y_offset = 100;
 	
+	bool audio;
+	
+	if (strcmp(argv[2], "none") == 0) audio = false;
+	else audio = true;
 	pthread_t sound_thrd;
-	if(!pthread_create(&sound_thrd, NULL, play_sound, argv[2])) {
-		return 1;
+			
+	
+	if (audio) {
+
+		if(!pthread_create(&sound_thrd, NULL, play_sound, argv[2])) {
+			return 1;
+		}
 	}
     for (int idx = 0; idx < 6572; ++idx) { // where 6572 is the amount of frames
 		int img_w, img_h;
@@ -135,12 +162,12 @@ int main(int argc, char **argv)
     munmap(fbp, screensize);
     close(fb);
 
-	printf("executing /sbin/init after exiting this...");
-	usleep(1000000);
-	
-	pthread_join(sound_thrd, NULL);
+	if (audio) pthread_join(sound_thrd, NULL);
 	
 	printf("\033c"); // clear screen after
+
+	printf("executing /sbin/init after exiting this...");
+	usleep(1000000);
 
     return 0;
 }
