@@ -2,6 +2,7 @@
 
 Bad apple!! in a linux framebuffer
 
+[Video](https://www.youtube.com/watch?v=CJqbjoz2cJo)
 
 ## Building
 
