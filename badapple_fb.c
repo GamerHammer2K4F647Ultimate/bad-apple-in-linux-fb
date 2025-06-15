@@ -187,8 +187,11 @@ int main(int argc, char **argv)
 			return 1;
 		}
 	}
-	
-	for (int idx = 0; idx < 6572; ++idx) { // where 6572 is the amount of frames
+
+#define FRAME_COUNT 6572
+#define FPS 30.0
+
+/* 	for (int idx = 0; idx < 6572; ++idx) { // where 6572 is the amount of frames
 		int img_w, img_h;
 		char fn[1024];
 		snprintf(fn, sizeof(fn),"./%s/%04d.ppm", argv[1], idx+1);
@@ -215,6 +218,53 @@ int main(int argc, char **argv)
 		}
 		free(img);
 		usleep(33333);
+	} */
+	
+	struct timespec start;
+	clock_gettime(CLOCK_MONOTONIC, &start);
+	
+	int last_rendered = -1;
+	
+	while (last_rendered < FRAME_COUNT - 1) {
+		struct timespec now;
+		clock_gettime(CLOCK_MONOTONIC, &now);
+		
+		double elapsed = (now.tv_sec - start.tv_sec) + (now.tv_nsec - start.tv_nsec) / 1e9;
+		
+		int tgt_frame = (int)(elapsed * FPS);
+		
+		if (tgt_frame <= last_rendered) continue;
+		
+		while (last_rendered < tgt_frame && last_rendered < FRAME_COUNT - 1) {
+			last_rendered++;
+			
+			int img_w, img_h;
+			char fn[1024];
+			snprintf(fn, sizeof(fn),"./%s/%04d.ppm", argv[1], last_rendered+1);
+			unsigned char *img = load_ppm(fn, &img_w, &img_h);
+			if (!img) continue;
+			for (int y = 0; y < img_h; y++) {
+				for (int x = 0; x < img_w; x++) {
+					int fb_x = x + x_offset;
+					int fb_y = y + y_offset;
+
+					if (fb_x >= vinfo.xres || fb_y >= vinfo.yres)
+					continue;
+
+					long loc = fb_x * bytes_per_pixel + fb_y * finfo.line_length;
+					unsigned char r = img[(y * img_w + x) * 3 + 0];
+					unsigned char g = img[(y * img_w + x) * 3 + 1];
+					unsigned char b = img[(y * img_w + x) * 3 + 2];
+
+					fbp[loc + 0] = b;
+					fbp[loc + 1] = g;
+					fbp[loc + 2] = r;
+					fbp[loc + 3] = 0;
+				}
+			}
+			free(img);
+			
+		}
 	}
 
 	munmap(fbp, screensize);
