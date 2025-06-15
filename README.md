@@ -8,7 +8,7 @@ Bad apple!! in a linux framebuffer
 ### Dependecies
  - ffmpeg
  - good gpu
- - a static build of alsa-lib
+ - a static build of [alsa-lib](https://www.alsa-project.org/files/pub/lib/)
  
 ```console
 $ make -j1
