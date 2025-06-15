@@ -2,16 +2,17 @@
 
 Bad apple!! in a linux framebuffer
 
-No audio yet.
 
 ## Building
 
 ### Dependecies
  - ffmpeg
  - good gpu
+ - a static build of alsa-lib
  
 ```console
-$ make
+$ make -j1
+$ sudo make install # if you want to
 ```
 
 This will also generate the .ppm files for the frames (going to be a few gigabytes).
